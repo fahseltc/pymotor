@@ -1,4 +1,5 @@
 from game_state import EmptyState
+from quit_state import QuitState
 from log import log
 
 class StateMachine:
@@ -6,6 +7,7 @@ class StateMachine:
     def __init__(self):
         self.states = dict()
         self.current_state = EmptyState()
+        self.states["Quit"] = QuitState()
 
     def update(self, dt):
         self.current_state.update(dt)
@@ -14,7 +16,7 @@ class StateMachine:
         self.current_state.render(screen)
 
     def set_state(self, state_name):
-        log(self.__class__.__name__).info("set_state: |old:%s -- new:%s|", str(self.current_state), state_name)
+        #log(self.__class__.__name__).info("set_state: |old:%s -- new:%s|", str(self.current_state), state_name)
         self.current_state.on_exit()
         self.current_state = self.states[state_name]
         self.current_state.on_enter()

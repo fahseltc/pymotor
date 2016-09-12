@@ -4,6 +4,7 @@ from pygame.locals import *
 from log import log, setup_logs
 from states.game_state import GameState, EmptyState
 from states.menu_state import MenuState
+from states.play_state import PlayState
 from states.state_machine import StateMachine
 import CONSTANTS
 
@@ -17,41 +18,39 @@ pygame.init()
 pygame.display.set_mode(CONSTANTS.RESOLUTION,RESIZABLE)
 
 state_machine = StateMachine()
-state_machine.update(1)
-#state_machine.render()
 
-state_machine.add_state(str(EmptyState()), EmptyState())
-state_machine.set_state(str(EmptyState()))
-state_machine.update(1)
-#state_machine.render()
+menu_state = MenuState(state_machine)
+state_machine.add_state(str(menu_state), menu_state)
+state_machine.set_state(str(menu_state))
 
-state_machine.add_state(str(MenuState()), MenuState())
-state_machine.set_state(str(MenuState()))
-state_machine.update(1)
-#state_machine.render()
+play_state = PlayState(state_machine)
+state_machine.add_state(str(play_state), play_state)
+
 
 log("root").info("done_setup")
 
 screen = pygame.display.get_surface()
 clock = pygame.time.Clock()
-running = True
 
-while(running):
+
+while(CONSTANTS.RUNNING):
     log("root").info("loop start")
+    log("root").info("%s" % CONSTANTS.RUNNING)
 
     dt = clock.tick(60)/1000.
 
-    event = pygame.event.wait()
+    #event = pygame.event.wait()
+    for event in pygame.event.get():
 
-    if event.type == pygame.QUIT:
-        running = False
-    elif event.type == KEYDOWN:
-        if event.key == pygame.K_ESCAPE:
-            running = False
-    elif event.type == VIDEORESIZE:
-        CONSTANTS.RESOLUTION = (event.w,event.h)
-        pygame.display.set_mode(CONSTANTS.RESOLUTION,RESIZABLE)
-        pygame.display.update()
+        if event.type == pygame.QUIT:
+            CONSTANTS.RUNNING = False
+        elif event.type == KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                CONSTANTS.RUNNING = False
+        elif event.type == VIDEORESIZE:
+            CONSTANTS.RESOLUTION = (event.w,event.h)
+            pygame.display.set_mode(CONSTANTS.RESOLUTION,RESIZABLE)
+            pygame.display.update()
 
     state_machine.update(dt)
     state_machine.render(screen)

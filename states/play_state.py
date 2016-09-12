@@ -1,31 +1,16 @@
-from abc import ABCMeta, abstractmethod
+import pygame
 
 import CONSTANTS
 from log import log
+from game_state import GameState
 
 
-class GameState:
-    __metaclass__ = ABCMeta
-    @abstractmethod
-    def update(self, dt):
-        pass
-
-    @abstractmethod
-    def render(self, screen):
-        pass
-
-    @abstractmethod
-    def on_exit(self):
-        pass
-
-    @abstractmethod
-    def on_enter(self):
-        pass
-
-
-class EmptyState(GameState):
+class PlayState(GameState):
     def __str__(self):
-        return "Empty"
+        return "Play"
+
+    def __init__(self, state_machine):
+        self.state_machine = state_machine
 
     def update(self, dt):
         log(self.__class__.__name__).info("update:begin")

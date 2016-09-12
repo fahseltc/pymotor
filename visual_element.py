@@ -18,30 +18,37 @@ class VisualElement(pygame.sprite.Sprite): #visual element?
         self.rect.y = y
 
     def highlight(self):
-        highlighted = [x+30 for x in self.color if x < 225]
-        self.image.fill(highlighted)
+        r = self.color[0]+30 if self.color[0] < 225 else self.color[0]
+        g = self.color[1]+30 if self.color[1] < 225 else self.color[1]
+        b = self.color[2]+30 if self.color[2] < 225 else self.color[2]
 
-    def render_text(self, text, position=False):
-        if position:
-            self.text.position = position
-        else:
-            self.text.position = (0,0)
-        self.text.text = text
-        font = pygame.font.Font(None, 20)
-        #rendered_text = TextBounds.render("STRING", font, rect, colortext, colorbg, justification )
-        #rendered_text = font.render(self.text.text, False, CONSTANTS.WHITE)
-        self.image.blit(rendered_text, self.text.position)
+        #highlighted = [x+30 for x in self.color if x < 225]
+        #print(highlighted)
+        self.image.fill((r,g,b))
+
+    def update(self):
+        if self.text.text is not 'Default':
+            self.render_text()
+
+    # def render_text(self, text, position=False):
+    #     if position:
+    #         self.text.position = position
+    #     else:
+    #         self.text.position = (0,0)
+    #     self.text.text = text
+    #     font = pygame.font.Font(None, 20)
+    #     #rendered_text = TextBounds.render("STRING", font, rect, colortext, colorbg, justification )
+    #     #rendered_text = font.render(self.text.text, False, CONSTANTS.WHITE)
+    #     self.image.blit(rendered_text, self.text.position)
 
 
     # justification - 0 (default) left-justified
     #                     1 horizontally centered
     #                     2 right-justified
 
-    def render_text(self, text=None, color=CONSTANTS.WHITE, justification=0):
-        if text:
-            self.text.text = text
+    def render_text(self, color=CONSTANTS.WHITE, justification=1):
 
-        font = pygame.font.Font(None, 20)
+        font = pygame.font.Font(None, self.text.size)
         final_lines = []
 
         requested_lines = self.text.text.splitlines()
@@ -69,7 +76,7 @@ class VisualElement(pygame.sprite.Sprite): #visual element?
         # NOW DRAW DAT
         surface = self.image
 
-        accumulated_height = 0
+        accumulated_height = 5
         for line in final_lines:
             if accumulated_height + font.size(line)[1] >= self.rect.height:
                 raise TextRectException, "Once word-wrapped, the text string was too tall to fit in the rect."
@@ -84,28 +91,40 @@ class VisualElement(pygame.sprite.Sprite): #visual element?
 
             accumulated_height += font.size(line)[1]
 
-
 class ClickableElement(VisualElement):
     """
-    A GUI class for handling mosue interaction
+    A GUI class for handling mouse interaction
     """
     def __init__(self, x, y, width, height, color):
         VisualElement.__init__(self, x, y, width, height, color)
+        self.click_function = None
+        self.hover_function = None
 
-    def on_hover(self, function, *args):
-        if self.rect.collidepoint(pygame.mouse.get_pos()):
-            log(self.__class__.__name__).info("on_hover:enter")
-            function(*args)
-        else:
-            self.image.fill(self.color)
+    def set_hover_function(self, function):
+        self.hover_function = function
 
-    def on_click(self, function):
-        pass
+    def set_click_function(self, function):
+        self.click_function = function
+
+    def update(self):
+        self.on_hover()
+        self.on_click()
+        super(ClickableElement, self).update()
+
+    def on_hover(self):
+        if self.hover_function is not None:
+            if self.rect.collidepoint(pygame.mouse.get_pos()):
+                log(self.__class__.__name__).info("on_hover:enter")
+                self.hover_function()
+
+    def on_click(self):
+        if self.click_function is not None:
+            if self.rect.collidepoint(pygame.mouse.get_pos()) and pygame.mouse.get_pressed()[0]:
+                log(self.__class__.__name__).info("on_click:enter")
+                self.click_function()
 
 class TextElement(pygame.font.Font):
-    def __init__(self, text='Default', size=12, position=(0,0)):
+    def __init__(self, text='Default', size=80, position=(0,0)):
         self.text = text
         self.size = size
-        self.position = position
-
-
+        #self.position = position
